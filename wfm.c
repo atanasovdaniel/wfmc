@@ -487,7 +487,20 @@ void redirect(char *location, ...) {
     vsnprintf(buff, sizeof(buff), location, ap);
     va_end(ap);
 
-    cgiHeaderLocation(buff);
+    if( !cfg.metaredirect)
+        cgiHeaderLocation(buff);
+    else {
+        cgiHeaderContentType("text/html");
+        fprintf(cgiOut,
+            "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\"\n\"http://www.w3.org/TR/html4/loose.dtd\">\n"
+            "<HTML LANG=\"en\">\n"
+            COPYRIGHT
+            "<HEAD>\n"
+            "<meta http-equiv=\"Refresh\" content=\"0; URL=%s\">\n"
+            "</HEAD>\n"
+            "</HTML>\n",
+            buff);
+    }
  	exit(0);
 }
 
@@ -517,6 +530,7 @@ void cfgload(void) {
     char c_editany[]="edit-any-file=true";
     char c_du[]="recursive-du=true";
     char c_largeset[]="large-file-set=true";
+    char c_metaredirect[]="redirect-with-meta=true";
     char c_access[]="access";
 
     memset(&cfg, 0, sizeof(cfg));
@@ -540,6 +554,7 @@ void cfgload(void) {
         else if(strncmp(cfgline, c_editdef, strlen(c_editdef))==0)              cfg.edit_by_default=1;
         else if(strncmp(cfgline, c_editany, strlen(c_editany))==0)              cfg.edit_any_file=1;
         else if(strncmp(cfgline, c_largeset, strlen(c_largeset))==0)            cfg.largeset=1;
+        else if(strncmp(cfgline, c_metaredirect, strlen(c_metaredirect))==0)    cfg.metaredirect=1;
         else if(strncmp(cfgline, c_du, strlen(c_du))==0)                        cfg.recursive_du=1;
         else if(strncmp(cfgline, c_access, strlen(c_access))==0)                access_check(cfgline);
     }

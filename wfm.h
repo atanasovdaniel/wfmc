@@ -90,6 +90,7 @@ extern struct config_struct {
     int edit_any_file;
     int recursive_du;
     int largeset;
+    int metaredirect;
     char homedir[PATH_MAX];
     char homeurl[1024];
     char tagline[1024];

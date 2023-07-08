@@ -74,6 +74,10 @@ Below is a simple, self-explanatory configuration file example:
     # instead of a complete tree from the whole repository
     #large-file-set=true
 
+    # redirect using use meta tag with http-equiv="Refresh"
+    # enable this option if HTTP redirects doesn't work
+    #redirect-with-meta=true
+
     # favicon / application icon, must be one of the embedded/compiled icon files
     # by default wfmicon.gif
     #favicon=home.gif
