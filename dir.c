@@ -75,7 +75,7 @@ void dirlist(void) {
     time_t now;
 
     time(&now);
-//    upload_id=ftok(getenv("SCRIPT_FILENAME"), getpid()); 
+//    upload_id=ftok(getenv("SCRIPT_FILENAME"), getpid());
 //    if(upload_id<1)
 //        upload_id=now; // holy shit
 
@@ -104,7 +104,7 @@ void dirlist(void) {
     //
     fprintf(cgiOut,
         "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\"\n\"http://www.w3.org/TR/html4/loose.dtd\">\n"
-        "\n%s\n" 
+        "\n%s\n"
         "<HTML LANG=\"en\">\n"
         "<HEAD>\n"
         "<TITLE>%s : %c%s</TITLE>\n",
@@ -174,7 +174,7 @@ void dirlist(void) {
         ".hovout { border: none; padding: 0px; background-color: transparent; color: #0000CE; }\n"
         ".hovin  { border: none; padding: 0px; background-color: transparent; color: #FF0000; }\n"
         "-->\n"
-        "</STYLE>\n" 
+        "</STYLE>\n"
         "<META HTTP-EQUIV=\"Content-Type\" CONTENT=\"text/html;charset=US-ASCII\">\n"
         "<META HTTP-EQUIV=\"Content-Language\" CONTENT=\"en-US\">\n"
         "<META HTTP-EQUIV=\"google\" CONTENT=\"notranslate\">\n"
@@ -191,7 +191,8 @@ void dirlist(void) {
     //
     // TITLE
     //
-    fprintf(cgiOut, 
+#ifdef WFM_NOEXPPATH
+    fprintf(cgiOut,
             "<!-- TITLE --> \n"
             "<TABLE WIDTH=\"100%%\" BGCOLOR=\"#FFFFFF\" CELLPADDING=\"0\" CELLSPACING=\"0\" BORDER=\"0\" STYLE=\"height:28px;\">\n"
                 "<TR>\n"
@@ -199,15 +200,54 @@ void dirlist(void) {
                 "&nbsp;<IMG SRC=\"%s%s\" ALIGN=\"MIDDLE\" ALT=\"WFM\">\n"
                 "%s : %c%s \n"
                 "<TD NOWRAP  BGCOLOR=\"#F1F1F1\" VALIGN=\"MIDDLE\" ALIGN=\"RIGHT\" STYLE=\"color:#000000; font-weight:bold;  white-space:nowrap\">\n",
-            rt.iconsurl, cfg.favicon, cfg.tagline, (strlen(wp.virt_dirname)>0) ? ' ' : '/', wp.virt_dirname 
+            rt.iconsurl, cfg.favicon, cfg.tagline, (strlen(wp.virt_dirname)>0) ? ' ' : '/', wp.virt_dirname
     );
+#else
+    fprintf(cgiOut,
+            "<!-- TITLE --> \n"
+            "<TABLE WIDTH=\"100%%\" BGCOLOR=\"#FFFFFF\" CELLPADDING=\"0\" CELLSPACING=\"0\" BORDER=\"0\" STYLE=\"height:28px;\">\n"
+                "<TR>\n"
+                "<TD NOWRAP  WIDTH=\"100%%\" BGCOLOR=\"#0072c6\" VALIGN=\"MIDDLE\" ALIGN=\"LEFT\" STYLE=\"color:#FFFFFF; font-weight:bold;\">\n"
+                "&nbsp;<IMG SRC=\"%s%s\" ALIGN=\"MIDDLE\" ALT=\"WFM\">\n",
+            rt.iconsurl, cfg.favicon
+    );
+    {
+        char *p = wp.virt_dirname;
+        char *s;
+        if( *p == '/') p++;
+        fprintf(cgiOut,
+             "<A HREF=\"%s?sortby=%s&amp;directory=/&amp;token=%s\">%s</A>/",
+            cgiScriptName, sortby, rt.token, cfg.tagline);
+        s = p;
+        while(1)
+        {
+            char *tp = strchr( p, '/');
+            char *up;
+            if( !tp) break;
+            p = tp;
 
+            *p = '\0';
+            up = url_encode( wp.virt_dirname);
+            fprintf(cgiOut,
+                 "<A HREF=\"%s?sortby=%s&amp;directory=%s&amp;token=%s\">%s</A>/",
+                cgiScriptName, sortby, up, rt.token, s);
+            free(up);
+            *p = '/';
+            p++;
+            s = p;
+        }
+        if( *p)
+            fprintf(cgiOut, "%s", s);
+    }
+    fprintf(cgiOut,
+                "\n<TD NOWRAP  BGCOLOR=\"#F1F1F1\" VALIGN=\"MIDDLE\" ALIGN=\"RIGHT\" STYLE=\"color:#000000; font-weight:bold;  white-space:nowrap\">\n");
+#endif // WFM_NOEXPPATH
 
     // lock / unlock
     if(!rt.access_as_user && cfg.users_defined)
-        fprintf(cgiOut, 
+        fprintf(cgiOut,
             "<A HREF=\"%s?action=login&amp;directory=%s\">"
-            "&nbsp;<IMG SRC=\"%s%s.gif\" ALIGN=\"MIDDLE\" BORDER=\"0\" ALT=\"Access\"></A>&nbsp;%s\n",  
+            "&nbsp;<IMG SRC=\"%s%s.gif\" ALIGN=\"MIDDLE\" BORDER=\"0\" ALT=\"Access\"></A>&nbsp;%s\n",
             cgiScriptName, wp.virt_dirname_urlencoded, rt.iconsurl, access_string[rt.access_level], access_string[rt.access_level]);
     else if(rt.auth_method==3)
         fprintf(cgiOut,
@@ -217,13 +257,13 @@ void dirlist(void) {
             cgiScriptName, rt.iconsurl, access_string[rt.access_level], access_string[rt.access_level], rt.iconsurl, rt.loggedinuser);
 
     else
-        fprintf(cgiOut, 
+        fprintf(cgiOut,
             "<A HREF=\"%s?directory=%s\"><IMG SRC=\"%s%s.gif\" BORDER=\"0\" ALIGN=\"MIDDLE\" ALT=\"Access\">"
             "</A>&nbsp;%s&nbsp;<IMG SRC=\"%suser.gif\" ALIGN=\"MIDDLE\" ALT=\"User\">&nbsp;%s&nbsp;\n",
             cgiScriptName, wp.virt_dirname_urlencoded, rt.iconsurl, access_string[rt.access_level], access_string[rt.access_level], rt.iconsurl, rt.loggedinuser);
 
     // about / version
-    fprintf(cgiOut, 
+    fprintf(cgiOut,
             "&nbsp;<IMG SRC=\"%snet.gif\" ALIGN=\"MIDDLE\" ALT=\"Client IP\">&nbsp;%s&nbsp;"
             "<A HREF=\"%s?action=about&amp;directory=%s&amp;token=%s\"><IMG BORDER=\"0\" SRC=\"%sver.gif\" ALIGN=\"MIDDLE\" ALT=\"Version\"></A>&nbsp;v%s&nbsp;"
             "</TD>\n"\
@@ -236,7 +276,7 @@ void dirlist(void) {
     //
     // TOOLBAR
     //
-    fprintf(cgiOut, 
+    fprintf(cgiOut,
             "<!-- TOOLBAR -->\n"\
             "<TABLE WIDTH=\"100%%\" BGCOLOR=\"#FFFFFF\" CELLPADDING=\"0\" CELLSPACING=\"0\" BORDER=\"0\" STYLE=\"height:28px;\">\n"
                 "<TR>\n"
@@ -248,7 +288,7 @@ void dirlist(void) {
                 "</TD>\n",
                 cgiScriptName, sortby, wp.virt_parent_urlencoded, rt.token, rt.iconsurl);
 
-    fprintf(cgiOut,                 
+    fprintf(cgiOut,
                 "<!-- HOME -->\n"
                 "<TD NOWRAP  BGCOLOR=\"#F1F1F1\" VALIGN=\"MIDDLE\" ALIGN=\"CENTER\">\n"
                  "<A HREF=\"%s?sortby=%s&amp;directory=/&amp;token=%s\">"
@@ -257,7 +297,7 @@ void dirlist(void) {
                 "</TD>\n",
                 cgiScriptName, sortby, rt.token, rt.iconsurl);
 
-    fprintf(cgiOut,                 
+    fprintf(cgiOut,
                 "<!-- RELOAD -->\n"
                 "<TD NOWRAP   BGCOLOR=\"#F1F1F1\" VALIGN=\"MIDDLE\" ALIGN=\"CENTER\">\n"
                      "<A HREF=\"%s?sortby=%s&amp;directory=%s&amp;token=%s\">"
@@ -266,7 +306,7 @@ void dirlist(void) {
                 "</TD>\n",
                 cgiScriptName, sortby, wp.virt_dirname_urlencoded, rt.token, rt.iconsurl);
 
-    fprintf(cgiOut,                 
+    fprintf(cgiOut,
                 "<!-- MULTI DELETE -->\n"\
                 "<TD NOWRAP   BGCOLOR=\"#F1F1F1\" VALIGN=\"MIDDLE\" ALIGN=\"CENTER\">\n"
                      "<INPUT TYPE=\"IMAGE\" SRC=\"%sdelete.gif\" STYLE=\"border: none; padding: 0px; vertical-align:middle;\" ALT=\"Delete\" ALIGN=\"MIDDLE\" NAME=\"multi_delete_prompt\" VALUE=\"Delete\">\n"
@@ -274,7 +314,7 @@ void dirlist(void) {
                 "</TD>\n",
                 rt.iconsurl, (rt.js) ? "onMouseOver=\"this.className='hovin';\" onMouseOut=\"this.className='hovout';\"" : "");
 
-    fprintf(cgiOut,                 
+    fprintf(cgiOut,
                 "<!-- MULTI MOVE -->\n"
                 "<TD NOWRAP   BGCOLOR=\"#F1F1F1\" VALIGN=\"MIDDLE\" ALIGN=\"CENTER\">\n"
                      "<INPUT TYPE=\"IMAGE\" SRC=\"%smove.gif\" STYLE=\"border: none; padding: 0px; vertical-align:middle; \" ALT=\"Move\" ALIGN=\"MIDDLE\" NAME=\"multi_move_prompt\" VALUE=\"Move\">\n"
@@ -282,7 +322,7 @@ void dirlist(void) {
                 "</TD>\n",
                 rt.iconsurl, (rt.js) ? "onMouseOver=\"this.className='hovin';\" onMouseOut=\"this.className='hovout';\"" : "");
 
-    fprintf(cgiOut,                                 
+    fprintf(cgiOut,
                 "<!-- NEWDIR -->\n"
                 "<TD NOWRAP   BGCOLOR=\"#F1F1F1\" VALIGN=\"MIDDLE\" ALIGN=\"CENTER\">\n"
                      "<A HREF=\"%s?action=mkdir_prompt&amp;directory=%s&amp;token=%s\" >\n"
@@ -290,9 +330,9 @@ void dirlist(void) {
                      "</A>\n"
                 "</TD>\n",
                 cgiScriptName, wp.virt_dirname_urlencoded, rt.token, rt.iconsurl);
-                
 
-    fprintf(cgiOut,                                 
+
+    fprintf(cgiOut,
                 "<!-- NEWFILE -->\n"\
                 "<TD NOWRAP   BGCOLOR=\"#F1F1F1\" VALIGN=\"MIDDLE\" ALIGN=\"CENTER\">\n"
                      "<A HREF=\"%s?action=mkfile_prompt&amp;directory=%s&amp;token=%s\">"
@@ -301,7 +341,7 @@ void dirlist(void) {
                 "</TD>\n",
                 cgiScriptName, wp.virt_dirname_urlencoded, rt.token, rt.iconsurl);
 
-    fprintf(cgiOut,                                 
+    fprintf(cgiOut,
                 "<!-- NEWURL -->\n"
                 "<TD NOWRAP   BGCOLOR=\"#F1F1F1\" VALIGN=\"MIDDLE\" ALIGN=\"CENTER\">\n"
                      "<A HREF=\"%s?action=mkurl_prompt&amp;directory=%s&amp;token=%s\">"
@@ -310,8 +350,8 @@ void dirlist(void) {
                 "</TD>\n",
                 cgiScriptName, wp.virt_dirname_urlencoded, rt.token, ICO_LNK);
 
-                
-    fprintf(cgiOut,                 
+
+    fprintf(cgiOut,
                 "<!-- UPLOAD -->\n"
                 "<TD NOWRAP  BGCOLOR=\"#F1F1F1\"  VALIGN=\"MIDDLE\" ALIGN=\"CENTER\">\n"
                     "<INPUT TYPE=\"hidden\" NAME=\"directory\" VALUE=\"%s\">\n"
@@ -322,7 +362,7 @@ void dirlist(void) {
                 "</TD>\n"
                 "</TR>\n"
             "</TABLE>\n",
-            wp.virt_dirname, rt.token, upload_id, (rt.access_level==PERM_RW) ? " " : "DISABLED"); 
+            wp.virt_dirname, rt.token, upload_id, (rt.access_level==PERM_RW) ? " " : "DISABLED");
 
     //
     // SORT BY
@@ -359,7 +399,7 @@ void dirlist(void) {
 
 
     // SORTBY ROW + dir files display
-    fprintf(cgiOut, 
+    fprintf(cgiOut,
             "<!-- MAIN FILE TABLE --> \n"
             "<TABLE WIDTH=\"100%%\" BGCOLOR=\"#FFFFFF\" CELLPADDING=0 CELLSPACING=0 BORDER=0>\n"
             "<!-- SORTBY LINE -->\n"
@@ -367,7 +407,7 @@ void dirlist(void) {
                 "<TD NOWRAP  ALIGN=\"left\" WIDTH=\"50%%\" BGCOLOR=\"#A0A0A0\">\n"
                 "<FONT COLOR=\"#FFFFFF\">\n");
 
-    if(rt.js) fprintf(cgiOut,               
+    if(rt.js) fprintf(cgiOut,
                 "<INPUT TYPE=\"CHECKBOX\" NAME=\"CHECKALL\"  STYLE=\"padding: 0px; border: none;\" ONCLICK=\"checkUncheckAll(this, multiselect_filename);\">\n");
 
     fprintf(cgiOut,
@@ -400,11 +440,11 @@ void dirlist(void) {
     // Enumerate Directories
     //
     for(e=0; e<nentr; e++) {
-        if(!S_ISDIR(direntry[e].type)) 
+        if(!S_ISDIR(direntry[e].type))
             continue;
-        if(direntry[e].name[0]=='.') 
-            continue; 
-            
+        if(direntry[e].name[0]=='.')
+            continue;
+
         name=direntry[e].name;
         name_urlencoded=url_encode(name);
 
@@ -413,7 +453,7 @@ void dirlist(void) {
         ctime_r(&direntry[e].atime, atime);
         ctime_r(&direntry[e].mtime, mtime);
         ctime_r(&direntry[e].rtime, rtime);
-        
+
              if(now-direntry[e].mtime < 3600)        stime=M_HR;
         else if(now-direntry[e].mtime < 24*3600)     stime=M_DAY;
         else if(now-direntry[e].mtime < 7*24*3600)   stime=M_WK;
@@ -444,28 +484,28 @@ void dirlist(void) {
 
 
         // directory name / date
-        fprintf(cgiOut, 
+        fprintf(cgiOut,
             "<!-- Directory Entry -->\n");
 
         fprintf(cgiOut,
             "<TR BGCOLOR=\"#%s\" ", linecolor);
-        
-        if(rt.js) 
+
+        if(rt.js)
             fprintf(cgiOut, "onMouseOver=\"this.bgColor='#%s';\" onMouseOut=\"this.bgColor='#%s';\"",
             tHL_COLOR, linecolor);
 
         fprintf(cgiOut,
             ">\n<TD NOWRAP  ALIGN=\"LEFT\">\n"
-            "<INPUT TYPE=\"CHECKBOX\" NAME=\"multiselect_filename\" STYLE=\"border: none;\" VALUE=\"%s\">", 
+            "<INPUT TYPE=\"CHECKBOX\" NAME=\"multiselect_filename\" STYLE=\"border: none;\" VALUE=\"%s\">",
              name);
-                    
-        fprintf(cgiOut, 
+
+        fprintf(cgiOut,
             "<A HREF=\"%s?sortby=%s&amp;directory=%s/%s&amp;token=%s\">%s %s</A></TD> \n"\
             "<TD NOWRAP  ALIGN=\"RIGHT\">%s</TD>\n"\
             "<TD NOWRAP  ALIGN=\"RIGHT\"><SPAN TITLE=\"Created:%s\n Modified:%s\n Accessed:%s\n\">%s&nbsp;%s</FONT></SPAN></TD>\n"\
             "<TD NOWRAP >&nbsp;</TD>"\
             "<TD NOWRAP  ALIGN=\"LEFT\">",
-        cgiScriptName, sortby, (strcmp(wp.virt_dirname, "/")==0) ? "" : wp.virt_dirname_urlencoded, name_urlencoded,  rt.token, icon, name,  
+        cgiScriptName, sortby, (strcmp(wp.virt_dirname, "/")==0) ? "" : wp.virt_dirname_urlencoded, name_urlencoded,  rt.token, icon, name,
         buprintf(size, TRUE), rtime, mtime, atime, stime, mtime);
 
         // rename
@@ -490,18 +530,18 @@ void dirlist(void) {
             "</TD>\n"\
             "</TR>\n\n\n",
         cgiScriptName, wp.virt_dirname_urlencoded, name_urlencoded, rt.token, name, rt.iconsurl);
-                  
+
         totalsize+=size;
         n++;
     }
 
-                            
+
     // regular files
     for(e=0; e<nentr; e++) {
-        if(S_ISDIR(direntry[e].type)) 
+        if(S_ISDIR(direntry[e].type))
             continue;
         if(direntry[e].name[0]=='.')
-            continue; 
+            continue;
 
         name=direntry[e].name;
         name_urlencoded=url_encode(name);
@@ -510,7 +550,7 @@ void dirlist(void) {
         ctime_r(&direntry[e].atime, atime);
         ctime_r(&direntry[e].mtime, mtime);
         ctime_r(&direntry[e].rtime, rtime);
-        
+
              if(now-direntry[e].mtime < 3600)        stime=M_HR;
         else if(now-direntry[e].mtime < 24*3600)     stime=M_DAY;
         else if(now-direntry[e].mtime < 7*24*3600)   stime=M_WK;
@@ -534,8 +574,8 @@ void dirlist(void) {
 
         if(cfg.edit_any_file)                               { editable=1; }
 
-        if(strcmp(highlight, name)==0)   { 
-            icon=ICO_NEW; 
+        if(strcmp(highlight, name)==0)   {
+            icon=ICO_NEW;
             linecolor=tHIGH_COLOR;
         }
         else {
@@ -571,14 +611,14 @@ void dirlist(void) {
         licon="";
     }
 
-        // filename 
-        fprintf(cgiOut, 
+        // filename
+        fprintf(cgiOut,
             "<!-- File Entry -->\n");
 
         fprintf(cgiOut,
             "<TR BGCOLOR=\"#%s\" ", linecolor);
-        
-        if(rt.js) 
+
+        if(rt.js)
             fprintf(cgiOut, "onMouseOver=\"this.bgColor='#%s';\" onMouseOut=\"this.bgColor='#%s';\"",
             tHL_COLOR, linecolor);
 
@@ -590,7 +630,7 @@ void dirlist(void) {
 
 
         // size / date
-        fprintf(cgiOut, 
+        fprintf(cgiOut,
             "\n"
             "<TD NOWRAP  ALIGN=\"RIGHT\" >%s</TD>\n"
             "<TD NOWRAP  ALIGN=\"RIGHT\" ><SPAN TITLE=\"Created:%s\n Modified:%s\n Accessed:%s\n\">%s&nbsp;%s</FONT></SPAN></TD>\n",
@@ -602,14 +642,14 @@ void dirlist(void) {
 
 
         // rename
-        fprintf(cgiOut, 
+        fprintf(cgiOut,
             "<A HREF=\"%s?action=rename_prompt&amp;directory=%s&amp;filename=%s&amp;token=%s\" TITLE=\"Rename '%s'\">\n"
             "<IMG SRC=\"%srename.gif\" BORDER=0 WIDTH=16 HEIGHT=16 ALT=\"Rename File\">\n"
             "</A>\n",
             cgiScriptName, wp.virt_dirname_urlencoded, name_urlencoded, rt.token, name, rt.iconsurl);
 
         // move
-        fprintf(cgiOut, 
+        fprintf(cgiOut,
             "\n"
             "<A HREF=\"%s?action=move_prompt&amp;directory=%s&amp;filename=%s&amp;token=%s\" TITLE=\"Move %s\">"
             "<IMG SRC=\"%smove.gif\" BORDER=0 WIDTH=16 HEIGHT=16  ALT=\"Move '%s'\">\n"
@@ -617,7 +657,7 @@ void dirlist(void) {
             cgiScriptName, wp.virt_dirname_urlencoded, name_urlencoded, rt.token, name,  rt.iconsurl, name);
 
         // delete
-        fprintf(cgiOut, 
+        fprintf(cgiOut,
             "\n"
             "<A HREF=\"%s?action=delete_prompt&amp;directory=%s&amp;filename=%s&amp;token=%s\" "
             "TITLE=\"Remove '%s'\"> \n"
@@ -626,8 +666,8 @@ void dirlist(void) {
             cgiScriptName, wp.virt_dirname_urlencoded, name_urlencoded, rt.token, name, rt.iconsurl);
 
         // edit for text files..
-        if(editable||is_link) 
-            fprintf(cgiOut, 
+        if(editable||is_link)
+            fprintf(cgiOut,
                 "\n"
                 "<A HREF=\"%s?action=%s&amp;directory=%s&amp;filename=%s&amp;token=%s\" TITLE=\"%s %s\">\n"
                 "%s\n"
@@ -635,8 +675,8 @@ void dirlist(void) {
             cgiScriptName, raction, wp.virt_dirname_urlencoded, name_urlencoded, rt.token, raction, name, ricon);
 
         // links
-        if(is_link) 
-            fprintf(cgiOut, 
+        if(is_link)
+            fprintf(cgiOut,
                 "\n"
                 "<A HREF=\"%s?action=%s&amp;directory=%s&amp;filename=%s&amp;token=%s\" TITLE=\"%s %s\">\n"
                 "%s\n"
@@ -645,15 +685,15 @@ void dirlist(void) {
 
         // view via external link
         if(strlen(cfg.homeurl)>4 && !is_link)
-            fprintf(cgiOut, 
+            fprintf(cgiOut,
                 "\n"
                 "<A HREF=\"%s%s%s/%s\" TITLE=\"Preview '%s' In Browser\">\n"
                 "%s\n"
-                "</A>\n", 
+                "</A>\n",
             cfg.homeurl, (wp.virt_dirname[0]!='/') ? "/" : "", (strcmp(wp.virt_dirname, "/")==0) ? "" : wp.virt_dirname, name, name, ICO_LNK);
 
 
-        fprintf(cgiOut, 
+        fprintf(cgiOut,
             "\n"
             "&nbsp;\n"
             "</TD>\n"
@@ -669,7 +709,7 @@ void dirlist(void) {
     //
     // footer line
     //
-    fprintf(cgiOut, 
+    fprintf(cgiOut,
         "<!-- FOOTER -->\n"
         "<TR>\n"
             "<TD NOWRAP  BGCOLOR=\"#%s\">&nbsp;</TD>\n"
@@ -681,6 +721,6 @@ void dirlist(void) {
         "</TABLE>\n</FORM>\n</BODY>\n<!-- Page generated in %f seconds -->\n</HTML>\n\n",
         tNORMAL_COLOR, tNORMAL_COLOR, buprintf(totalsize, TRUE), tNORMAL_COLOR, (t2-t1)*1000, tNORMAL_COLOR, tNORMAL_COLOR, t2-t1
     );
-    
+
 }
 
