@@ -66,7 +66,9 @@ void dirlist(void) {
     char highlight[sizeof(wp.virt_filename)]={0};
     char namepfx[1024], sizepfx[1024], datepfx[1024];
     char rtime[64], mtime[64], atime[64];
+#ifndef WFMSIMPLETIME
     char *stime;
+#endif
     char sortby[64]={0};
     char *name, *name_urlencoded, *icon, *linecolor, *action, *raction, *ricon, *laction, *licon;
     int nentr=0, e=0, n=1;
@@ -454,6 +456,7 @@ void dirlist(void) {
 
         size=direntry[e].size;
 
+#ifndef WFMSIMPLETIME
         ctime_r(&direntry[e].atime, atime);
         ctime_r(&direntry[e].mtime, mtime);
         ctime_r(&direntry[e].rtime, rtime);
@@ -467,7 +470,11 @@ void dirlist(void) {
 //      else if(now-direntry[e].mtime < 182*24*3600) stime=M_6MO;
         else if(now-direntry[e].mtime < 365*24*3600) stime=M_YR;
         else                                         stime=M_OLD;
-
+#else
+        strftime( atime, sizeof(atime), "%F %T", localtime(&direntry[e].atime));
+        strftime( mtime, sizeof(mtime), "%F %T", localtime(&direntry[e].mtime));
+        strftime( rtime, sizeof(rtime), "%F %T", localtime(&direntry[e].rtime));
+#endif // WFMSIMPLETIME
 
         if(strcmp(highlight, name)==0)  {
             icon=ICO_NEW;
@@ -486,7 +493,6 @@ void dirlist(void) {
             }
         }
 
-
         // directory name / date
         fprintf(cgiOut,
             "<!-- Directory Entry -->\n");
@@ -504,13 +510,21 @@ void dirlist(void) {
              name);
 
         fprintf(cgiOut,
-            "<A HREF=\"%s?sortby=%s&amp;directory=%s/%s&amp;token=%s\">%s %s</A></TD> \n"\
-            "<TD NOWRAP  ALIGN=\"RIGHT\">%s</TD>\n"\
-            "<TD NOWRAP  ALIGN=\"RIGHT\"><SPAN TITLE=\"Created:%s\n Modified:%s\n Accessed:%s\n\">%s&nbsp;%s</FONT></SPAN></TD>\n"\
-            "<TD NOWRAP >&nbsp;</TD>"\
+            "<A HREF=\"%s?sortby=%s&amp;directory=%s/%s&amp;token=%s\">%s %s</A></TD> \n"
+            "<TD NOWRAP  ALIGN=\"RIGHT\">%s</TD>\n"
+#ifndef WFMSIMPLETIME
+            "<TD NOWRAP  ALIGN=\"RIGHT\"><SPAN TITLE=\"Created:%s\n Modified:%s\n Accessed:%s\n\">%s&nbsp;%s</FONT></SPAN></TD>\n"
+#else
+            "<TD NOWRAP  ALIGN=\"RIGHT\"><SPAN TITLE=\"Created:%s\n Modified:%s\n Accessed:%s\n\">%s</FONT></SPAN></TD>\n"
+#endif
+            "<TD NOWRAP >&nbsp;</TD>"
             "<TD NOWRAP  ALIGN=\"LEFT\">",
         cgiScriptName, sortby, (strcmp(wp.virt_dirname, "/")==0) ? "" : wp.virt_dirname_urlencoded, name_urlencoded,  rt.token, icon, name,
+#ifndef WFMSIMPLETIME
         buprintf(size, TRUE), rtime, mtime, atime, stime, mtime);
+#else
+        buprintf(size, TRUE), rtime, mtime, atime, mtime);
+#endif
 
         // rename
         fprintf(cgiOut, "\n"\
@@ -555,6 +569,7 @@ void dirlist(void) {
         name_urlencoded=url_encode(name);
         size=direntry[e].size;
 
+#ifndef WFMSIMPLETIME
         ctime_r(&direntry[e].atime, atime);
         ctime_r(&direntry[e].mtime, mtime);
         ctime_r(&direntry[e].rtime, rtime);
@@ -568,6 +583,11 @@ void dirlist(void) {
 //      else if(now-direntry[e].mtime < 182*24*3600) stime=M_6MO;
         else if(now-direntry[e].mtime < 365*24*3600) stime=M_YR;
         else                                         stime=M_OLD;
+#else
+        strftime( atime, sizeof(atime), "%F %T", localtime(&direntry[e].atime));
+        strftime( mtime, sizeof(mtime), "%F %T", localtime(&direntry[e].mtime));
+        strftime( rtime, sizeof(rtime), "%F %T", localtime(&direntry[e].rtime));
+#endif // WFMSIMPLETIME
 
              if(regexec(&reg_zip, name, 0, 0, 0)==0)    { icon=ICO_ZIP; editable=0; is_link=0; }
         else if(regexec(&reg_img, name, 0, 0, 0)==0)    { icon=ICO_IMG; editable=0; is_link=0; }
@@ -641,9 +661,13 @@ void dirlist(void) {
         fprintf(cgiOut,
             "\n"
             "<TD NOWRAP  ALIGN=\"RIGHT\" >%s</TD>\n"
+#ifndef WFMSIMPLETIME
             "<TD NOWRAP  ALIGN=\"RIGHT\" ><SPAN TITLE=\"Created:%s\n Modified:%s\n Accessed:%s\n\">%s&nbsp;%s</FONT></SPAN></TD>\n",
         buprintf(size, TRUE), rtime, mtime, atime, stime, mtime);
-
+#else
+            "<TD NOWRAP  ALIGN=\"RIGHT\" ><SPAN TITLE=\"Created:%s\n Modified:%s\n Accessed:%s\n\">%s</FONT></SPAN></TD>\n",
+        buprintf(size, TRUE), rtime, mtime, atime, mtime);
+#endif
 
         // file tools
         fprintf(cgiOut, "\n<TD NOWRAP >&nbsp;</TD><TD NOWRAP  ALIGN=\"LEFT\">\n");
