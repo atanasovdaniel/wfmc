@@ -70,7 +70,7 @@
 
 //#define SHM_SIZE 16
 
-struct  wfm_paths {
+extern struct  wfm_paths {
     char virt_dirname[NAME_MAX];
     char *virt_dirname_urlencoded;
     char virt_filename[NAME_MAX]; 
@@ -84,7 +84,7 @@ struct  wfm_paths {
     char final_destination[8192];
 } wp;
 
-struct config_struct {
+extern struct config_struct {
     int users_defined;
     int edit_by_default;
     int edit_any_file;
@@ -96,7 +96,7 @@ struct config_struct {
     char favicon[1024];
 } cfg;
 
-struct runtime_struct {
+extern struct runtime_struct {
     char token[256];
     char iconsurl[64];
     char loggedinuser[64];
@@ -106,8 +106,8 @@ struct runtime_struct {
     int js;
 } rt;
 
-double t1, t2;
-struct timeval mt;
+extern double t1, t2;
+extern struct timeval mt;
 
 enum { FALSE, TRUE };
 enum { PERM_NO, PERM_RO, PERM_RW };

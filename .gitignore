@@ -1,0 +1,5 @@
+*.o
+bin2c
+wfm
+wfmicondis.h
+wfmiconres.h

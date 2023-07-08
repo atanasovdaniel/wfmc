@@ -1,5 +1,11 @@
 #include "wfm.h"
 
+struct  wfm_paths wp;
+struct config_struct cfg;
+struct runtime_struct rt;
+double t1, t2;
+struct timeval mt;
+
 // 
 // Dispense Common HTML Header
 // Used by all (?) functions that display HTML pages
