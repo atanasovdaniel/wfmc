@@ -1,7 +1,8 @@
-#define VERSION "1.4.2"
+#define VERSION "1.4.2.1"
 #define COPYRIGHT "<!-- WFM Version " VERSION ", Mountain View, CA, " __DATE__ " [" __TIME__ "] -->\n" \
                   "<!-- Copyright (c) 1994-2018 by Antoni Sawicki -->\n" \
-                  "<!-- Copyright (c) 2018-2019 by Google LLC -->\n"
+                  "<!-- Copyright (c) 2018-2019 by Google LLC -->\n" \
+                  "<!-- Copyright (c) 2023 by Daniel Atanasov -->\n"
 
 #define FONT_SIZE "12px"
 
