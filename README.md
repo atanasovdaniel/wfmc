@@ -1,4 +1,6 @@
-# WFM - Web File Manager
+# WFMC - Web File Manager C implementation
+This repository is based on very old commit (Aug 2021) of original WFM repository.
+
 WFM is a lightweight web based file management application. It allows to perform
 regular file and folder operations such as upload, download, rename, delete files
 and organize directory tree structure using standard web browser. Text, markup and
