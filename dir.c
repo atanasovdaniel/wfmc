@@ -442,8 +442,12 @@ void dirlist(void) {
     for(e=0; e<nentr; e++) {
         if(!S_ISDIR(direntry[e].type))
             continue;
-        if(direntry[e].name[0]=='.')
-            continue;
+        if(direntry[e].name[0]=='.') {
+            if( !cfg.showdotfiles ||
+                (direntry[e].name[1]=='\0') ||
+                ((direntry[e].name[1]=='.') && (direntry[e].name[2]=='\0')) )
+                    continue;
+        }
 
         name=direntry[e].name;
         name_urlencoded=url_encode(name);
@@ -540,8 +544,12 @@ void dirlist(void) {
     for(e=0; e<nentr; e++) {
         if(S_ISDIR(direntry[e].type))
             continue;
-        if(direntry[e].name[0]=='.')
-            continue;
+        if(direntry[e].name[0]=='.') {
+            if( !cfg.showdotfiles ||
+                (direntry[e].name[1]=='\0') ||
+                ((direntry[e].name[1]=='.') && (direntry[e].name[2]=='\0')) )
+                    continue;
+        }
 
         name=direntry[e].name;
         name_urlencoded=url_encode(name);

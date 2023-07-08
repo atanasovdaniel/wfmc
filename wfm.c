@@ -6,12 +6,12 @@ struct runtime_struct rt;
 double t1, t2;
 struct timeval mt;
 
-// 
+//
 // Dispense Common HTML Header
 // Used by all (?) functions that display HTML pages
 //
 void html_title(char *msg) {
-    fprintf(cgiOut, 
+    fprintf(cgiOut,
         HTML_HEADER
         "<LINK REL=\"icon\" TYPE=\"image/gif\" HREF=\"%s%s\">\n"
         "<TITLE>%s : %s</TITLE>\n",
@@ -33,7 +33,7 @@ int icon(void) {
 
 #include "wfmicondis.h"
 
-    exit(0);        
+    exit(0);
 }
 
 
@@ -50,23 +50,23 @@ int icon(void) {
 
     if(cgiFormInteger("upload_id", &shm_key, 0) == cgiFormSuccess && shm_key) {
             shm_id = shmget(shm_key, SHM_SIZE, 0666);
-            if(shm_id >= 0) 
+            if(shm_id >= 0)
                 shm_val = shmat(shm_id, NULL, 0);
     }
- 
+
     fprintf(cgiOut, "Cache-Control: no-cache\r\n");
     cgiHeaderContentType("text/plain");
     time(&t);
 
     if(shm_val)
         fprintf(cgiOut, "%s %s\r\n", spin[(int)t % 4], shm_val);
-    else 
+    else
         fprintf(cgiOut, "%s\r\n", spin[(int)t % 4]);
 
     if (shm_val)
         shmdt(shm_val);
 
-    exit(0);        
+    exit(0);
 }*/
 
 
@@ -96,7 +96,7 @@ char *md5hash(char *str, ...) {
 
         for (i = 0; i < sizeof(digest); i++)
                 sprintf(outstr + i * 2, "%02x", digest[i]);
-        
+
         if(strlen(outstr))
             return outstr;
         else
@@ -119,16 +119,16 @@ void login(void) {
 
     cgiFormStringNoNewlines("username", username, sizeof(username));
     cgiFormStringNoNewlines("password", password, sizeof(password));
-    
-    if(strlen(username) && strlen(password)) 
+
+    if(strlen(username) && strlen(password))
         redirect("%s?directory=%s&login=server&token=%s", cgiScriptName, wp.virt_dirname_urlencoded, md5hash("%s:%s", cgiRemoteAddr, md5hash("%s:%s", username, password)));  // generate MD5 as if it was the client
     else
         login_ui(); // display actual login page, which normally generates token in JavaScript
-        
+
 }
 
 //
-// Access_check 
+// Access_check
 // Called by cfg read routine during initialization
 //
 void access_check(char *access_string) {
@@ -142,11 +142,11 @@ void access_check(char *access_string) {
     if(sscanf(access_string, "access-ip=%2s:%30s", type, ipaddr)==2) {
 
         if(ipaddr[0]=='*' || strcmp(cgiRemoteAddr, ipaddr)==0) {
-            if(strcmp(type, "ro")==0) 
+            if(strcmp(type, "ro")==0)
                 rt.access_level=PERM_RO;
-            else if(strcmp(type, "rw")==0) 
+            else if(strcmp(type, "rw")==0)
                 rt.access_level=PERM_RW;
-                
+
 			rt.auth_method=AUTH_IP;
     	}
     }
@@ -155,9 +155,9 @@ void access_check(char *access_string) {
 
         // perform user auth by comparing user supplied token with system generated token
         if(strcmp(md5hash("%s:%s", cgiRemoteAddr, pass), rt.token)==0) {
-            if(strcmp(type, "ro")==0) 
+            if(strcmp(type, "ro")==0)
                 rt.access_level=PERM_RO;
-            else if(strcmp(type, "rw")==0) 
+            else if(strcmp(type, "rw")==0)
                 rt.access_level=PERM_RW;
 
             rt.access_as_user=1;
@@ -169,9 +169,9 @@ void access_check(char *access_string) {
         cfg.users_defined=1;
 
         if(user[0]=='*' || (getenv("REMOTE_USER") && strcmp(user, getenv("REMOTE_USER"))==0)) {
-            if(strcmp(type, "ro")==0) 
+            if(strcmp(type, "ro")==0)
                 rt.access_level=PERM_RO;
-            else if(strcmp(type, "rw")==0) 
+            else if(strcmp(type, "rw")==0)
                 rt.access_level=PERM_RW;
 
             rt.access_as_user=1;
@@ -196,10 +196,10 @@ void checkfilename(char *inp_filename) {
         snprintf(temp_filename, sizeof(temp_filename), "%s", inp_filename);
     }
     else if(cgiFormFileName("filename", temp_filename, sizeof(wp.virt_filename)) == cgiFormSuccess) {
-        
+
     }
     else if(cgiFormStringNoNewlines("filename", temp_filename, sizeof(wp.virt_filename)) == cgiFormSuccess) {
-        
+
     }
     else
         error("No filename specified.");
@@ -208,7 +208,7 @@ void checkfilename(char *inp_filename) {
     bname=strrchr(temp_filename, '/');
     if(!bname)
         bname=strrchr(temp_filename, '\\');
-            
+
     if(!bname)
         bname=temp_filename;
     else
@@ -226,7 +226,7 @@ void checkfilename(char *inp_filename) {
     if(strstr(wp.virt_filename, "..")) error("Double dots in vfilename");
 
     snprintf(temp_dirname, sizeof(temp_dirname), "%s", wp.phys_filename);
-    if(strlen(dirname(temp_dirname)) < strlen(cfg.homedir)) 
+    if(strlen(dirname(temp_dirname)) < strlen(cfg.homedir))
         error("Basename path too short");
 }
 
@@ -236,7 +236,7 @@ void checkfilename(char *inp_filename) {
 //
 void checkdestination(void) {
     int absolute_destination;
-    
+
     cgiFormStringNoNewlines("destination", wp.virt_destination, sizeof(wp.virt_destination));
     strip(wp.virt_destination, sizeof(wp.virt_filename), VALIDCHRS_DIR);
 
@@ -260,7 +260,7 @@ void checkdestination(void) {
 void checkdirectory(void) {
     char temp[sizeof(wp.virt_dirname)]={0};
     char *real;
-    
+
     // virtual directory
     cgiFormStringNoNewlines("directory", wp.virt_dirname, sizeof(wp.virt_dirname));
     strip(wp.virt_dirname, sizeof(wp.virt_dirname), VALIDCHRS_DIR);
@@ -275,7 +275,7 @@ void checkdirectory(void) {
     // physical directory
     snprintf(wp.phys_dirname, sizeof(wp.phys_dirname), "%s/%s", cfg.homedir, wp.virt_dirname);
 
-    if(strlen(wp.phys_dirname)<2 || strlen(wp.phys_dirname)>(sizeof(wp.phys_dirname)-2)) 
+    if(strlen(wp.phys_dirname)<2 || strlen(wp.phys_dirname)>(sizeof(wp.phys_dirname)-2))
         error("Invalid directory name lenght 2");
 
     if(strlen(wp.phys_dirname) < strlen(cfg.homedir)) error("Invalid directory name 3.");
@@ -346,7 +346,7 @@ int strip(char *str, int len, char *allow) {
         else if(spctou && *str==' ')
             *(dst++)='_';
         else if(strlen(allow))
-            for(a=0; a<strlen(allow); a++) 
+            for(a=0; a<strlen(allow); a++)
                 if(*str==allow[a])
                     *(dst++)=*str;
     }
@@ -376,7 +376,7 @@ int strsplit(char *src, char ***dst, char *sep) {
             src++;
             c = strpbrk(src, sep);
         }
-        if (c == NULL) 
+        if (c == NULL)
             break;
 
         src = c + 1;
@@ -395,7 +395,7 @@ int strsplit(char *src, char ***dst, char *sep) {
             src++;
             c = strpbrk(src, sep);
         }
-        if (c == NULL) 
+        if (c == NULL)
             break;
 
         *c = 0;
@@ -437,7 +437,7 @@ char *buprintf(float v, int bold) {
     else { size = v; unit = ' '; }
 
     buffer=(char *)calloc(128, sizeof(char));
-    
+
     if(unit == 'G' && bold)
         snprintf(buffer, 128, "<B> %5.1f %cB </B>", size, unit);
     else if(unit == 'M' && bold)
@@ -504,7 +504,7 @@ void redirect(char *location, ...) {
  	exit(0);
 }
 
-// 
+//
 // Log off user from HTAUTH session
 //
 void logoff() {
@@ -531,6 +531,7 @@ void cfgload(void) {
     char c_du[]="recursive-du=true";
     char c_largeset[]="large-file-set=true";
     char c_metaredirect[]="redirect-with-meta=true";
+    char c_showdotfiles[]="show-dot-files=true";
     char c_access[]="access";
 
     memset(&cfg, 0, sizeof(cfg));
@@ -555,17 +556,18 @@ void cfgload(void) {
         else if(strncmp(cfgline, c_editany, strlen(c_editany))==0)              cfg.edit_any_file=1;
         else if(strncmp(cfgline, c_largeset, strlen(c_largeset))==0)            cfg.largeset=1;
         else if(strncmp(cfgline, c_metaredirect, strlen(c_metaredirect))==0)    cfg.metaredirect=1;
+        else if(strncmp(cfgline, c_showdotfiles, strlen(c_showdotfiles))==0)    cfg.showdotfiles=1;
         else if(strncmp(cfgline, c_du, strlen(c_du))==0)                        cfg.recursive_du=1;
         else if(strncmp(cfgline, c_access, strlen(c_access))==0)                access_check(cfgline);
     }
     fclose(cfgfile);
-    
+
     // remove newlines
     if(strlen(cfg.homedir)>2) cfg.homedir[strlen(cfg.homedir)-1]='\0';
     if(strlen(cfg.homeurl)>2) cfg.homeurl[strlen(cfg.homeurl)-1]='\0';
     if(strlen(cfg.tagline)>2) cfg.tagline[strlen(cfg.tagline)-1]='\0';
     if(strlen(cfg.favicon)>2) cfg.favicon[strlen(cfg.favicon)-1]='\0';
-    
+
     // do checks
     if(strlen(cfg.homedir) < 4)
         error("Home directory not defined.");
@@ -635,7 +637,7 @@ int cgiMain(void) {
     else if(strcmp(action, "about")==0                                    && rt.access_level >= PERM_RO)         about();
     else if(strcmp(action, "login")==0      )                                                                    login();
     else if(                                                                 rt.access_level >= PERM_RO)         dirlist();
-    else 
+    else
         if(cfg.users_defined) // if users present but supplied credentials didn't match, or credentials not specified
             redirect("%s?action=login", cgiScriptName);
         else

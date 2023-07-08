@@ -3,7 +3,7 @@
 #include "wfm.h"
 
 //
-// Send file to client browser 
+// Send file to client browser
 // Called by cgiMain action=save
 //
 void save(void) {
@@ -21,20 +21,20 @@ void save(void) {
     fseek(in, 0, SEEK_END);
     size=ftell(in);
     fseek(in, 0, SEEK_SET);
-    
-    fprintf(cgiOut, 
+
+    fprintf(cgiOut,
         "Content-Type: application/octet-stream\r\n"
         "Content-Disposition: attachment; filename=\"%s\"; size=%d\r\n"
-        "Content-Length: %d\r\n\r\n", 
+        "Content-Length: %d\r\n\r\n",
         wp.virt_filename, size, size
     );
 
     blk=sizeof(buff);
 
-    reread:    
+    reread:
     pos=ftell(in);
     rd=fread(buff, blk, 1, in);
-        
+
     if(rd) {
         tot+=rd*blk;
       //fprintf(cgiOut, "rw=%u size=%u total=%u remaining=%u\n", rd*blk, size, tot, size-pos-(rd*blk));
@@ -67,26 +67,26 @@ void receivefile(void) {
     //if(cgiFormFileSize("filename", &size) != cgiFormSuccess)
     //    error("No file size specified.");
 
-    if(cgiFormFileOpen("filename", &input) != cgiFormSuccess) 
+    if(cgiFormFileOpen("filename", &input) != cgiFormSuccess)
         error("Unable to access uploaded file.");
 
     output=fopen(wp.phys_filename, "wb");
-    if(!output) 
+    if(!output)
         error("Unable to open file %s for writing.<BR>%s", wp.virt_filename, strerror(errno));
 
     if(flock(fileno(output), LOCK_EX) == -1)
         error("Unable to lock file %s.<BR>%s", wp.virt_filename, strerror(errno));
 
-    while(cgiFormFileRead(input, buff, sizeof(buff), &got) == cgiFormSuccess) 
+    while(cgiFormFileRead(input, buff, sizeof(buff), &got) == cgiFormSuccess)
         if(got)
-            if(fwrite(buff, got, 1, output) != 1) 
+            if(fwrite(buff, got, 1, output) != 1)
                 error("While writing file.<BR>%s", strerror(errno));
 
     cgiFormFileClose(input);
     fclose(output);
 
     wfm_commit(CHANGE, NULL);
-    
+
     redirect("%s?highlight=%s&directory=%s&token=%s", cgiScriptName, wp.virt_filename_urlencoded, wp.virt_dirname_urlencoded, rt.token);
 
 }
@@ -102,7 +102,7 @@ void mkfile(void) {
 
     output=fopen(wp.phys_filename, "a"); //TODO: should probably give error if file already exists...
 
-    if(!output) 
+    if(!output)
         error("Unable to create file.<BR>%s", strerror(errno));
 
     fclose(output);
@@ -154,12 +154,12 @@ void edit_save(void) {
     if(size>=5*1024*1024)
         error("The file is too large for online editing.<BR>");
 
-    buff=(char *) malloc(size); 
+    buff=(char *) malloc(size);
     if(buff==NULL)
         error("Unable to allocate memory.");
 
     memset(buff, 0, size);
-        
+
     cgiFormString("content", buff, size);
 
 #ifndef WFMGIT
@@ -180,7 +180,7 @@ void edit_save(void) {
 #endif
     // write to temporary file
     snprintf(tempname, sizeof(tempname), "%s/.wfmXXXXXX", wp.phys_dirname);
-    
+
     tmpfd=mkstemp(tempname);
 
     if(!tmpfd)
@@ -190,7 +190,7 @@ void edit_save(void) {
         error("Unable to set file permissions.<BR>%s", strerror(errno));
 
     tempf=fdopen(tmpfd, "w");
-    
+
     if(!tempf)
         error("Unable to open temporary file %s.<BR>%s", basename(tempname), strerror(errno));
 
@@ -272,7 +272,7 @@ void mkurl(void) {
 
     regcomp(&reg_url, "\\.url$", REG_EXTENDED | REG_ICASE);
 
-    if(regexec(&reg_url, wp.phys_filename, 0, 0, 0)!=0) 
+    if(regexec(&reg_url, wp.phys_filename, 0, 0, 0)!=0)
         snprintf(wp.final_destination, sizeof(wp.final_destination), "%s.url", wp.phys_filename);
     else
         snprintf(wp.final_destination, sizeof(wp.final_destination), "%s", wp.phys_filename);
@@ -280,9 +280,9 @@ void mkurl(void) {
     if(stat(wp.final_destination, &sb)==0)
         error("File %s already exists.<BR>[%s]", wp.virt_filename, strerror(errno));
 
-    output=fopen(wp.final_destination, "w"); 
+    output=fopen(wp.final_destination, "w");
 
-    if(!output) 
+    if(!output)
         error("Unable to create file %s.<BR>%s", wp.virt_filename, strerror(errno));
 
     cgiFormStringNoNewlines("destination", wp.virt_destination, sizeof(wp.virt_destination));
@@ -309,7 +309,7 @@ void fileio_re_rmdir(char *dirname) {
     char tempfullpath[sizeof(wp.phys_filename)]={0};
 
     dir=opendir(dirname);
-    if(!dir) 
+    if(!dir)
         error("Unable to remove directory..");
 
     direntry=readdir(dir);
@@ -317,11 +317,11 @@ void fileio_re_rmdir(char *dirname) {
         if(strncmp(direntry->d_name, ".", 1) && strncmp(direntry->d_name, "..", 2)) {
             snprintf(tempfullpath, sizeof(wp.phys_filename), "%s/%s", dirname, direntry->d_name);
 
-            if(lstat(tempfullpath, &fileinfo)!=0)  
+            if(lstat(tempfullpath, &fileinfo)!=0)
                 error("Unable to get file status.<BR>%s", strerror(errno));
 
             if(S_ISDIR(fileinfo.st_mode)) {
-                fileio_re_rmdir(tempfullpath); 
+                fileio_re_rmdir(tempfullpath);
                 if(rmdir(tempfullpath)!=0)
                     error("Unable to remove directory...<BR>%s", strerror(errno));
             } else {
@@ -329,7 +329,7 @@ void fileio_re_rmdir(char *dirname) {
                     error("Unable to remove file....<BR>%s", strerror(errno));
                 wfm_commit(DELETE, tempfullpath);
             }
-            
+
         }
         direntry=readdir(dir);
     }
@@ -352,7 +352,7 @@ void fileio_delete(void) {
                     error("Unable to remove directory.<BR>%s", strerror(errno));
             }
             else {
-                if(unlink(wp.phys_filename)!=0) 
+                if(unlink(wp.phys_filename)!=0)
                     error("Unable to remove file.<BR>%s", strerror(errno));
 
                 wfm_commit(DELETE, NULL);
@@ -362,25 +362,25 @@ void fileio_delete(void) {
 }
 
 //
-// Delete File or Directory Handler - Allows Multiselect 
+// Delete File or Directory Handler - Allows Multiselect
 // Called by cgiMain action=delete
 //
 void delete(void) {
     int i;
-    char **responses; 
+    char **responses;
 
     // Single
-    if(cgiFormStringMultiple("multiselect_filename", &responses) == cgiFormNotFound) {  
+    if(cgiFormStringMultiple("multiselect_filename", &responses) == cgiFormNotFound) {
         checkfilename(NULL);
-        fileio_delete(); 
-    } 
+        fileio_delete();
+    }
     // Multi
     else {
         for(i=0; responses[i]; i++) {
             checkfilename(responses[i]);
             fileio_delete();
         }
-    }           
+    }
 
     redirect("%s?directory=%s&token=%s", cgiScriptName, wp.virt_dirname_urlencoded, rt.token);
 }
@@ -393,39 +393,39 @@ void fileio_move(void) {
     struct stat fileinfo;
 
     // If moving file to a different directory we need to append the original file name to destination
-    if( stat(wp.phys_destination, &fileinfo)==0 && S_ISDIR(fileinfo.st_mode) )  
+    if( stat(wp.phys_destination, &fileinfo)==0 && S_ISDIR(fileinfo.st_mode) )
         snprintf(wp.final_destination, sizeof(wp.final_destination), "%s/%s", wp.phys_destination, wp.virt_filename);
-    else 
+    else
         strncpy(wp.final_destination, wp.phys_destination, sizeof(wp.final_destination));
-    
-    if(rename(wp.phys_filename, wp.final_destination)!=0) 
+
+    if(rename(wp.phys_filename, wp.final_destination)!=0)
         error("Unable to move file. <BR>[%d: %s]<BR>[SRC=%s] [DST=%s]", errno, strerror(errno), wp.phys_filename, wp.final_destination);
 
     wfm_commit(MOVE, NULL);
 }
 
-// 
+//
 // Move File/Directory - Handler
 // Called by cgiMain action=move
 //
 void move(void) {
     int i;
-    char **responses; 
+    char **responses;
 
     checkdestination();
-   
+
     // Single
-    if(cgiFormStringMultiple("multiselect_filename", &responses) == cgiFormNotFound) {  
+    if(cgiFormStringMultiple("multiselect_filename", &responses) == cgiFormNotFound) {
         checkfilename(NULL);
         fileio_move();
-    } 
+    }
     // Multi
     else {
         for(i=0; responses[i]; i++) {
             checkfilename(responses[i]);
             fileio_move();
         }
-    }           
+    }
 
     redirect("%s?highlight=%s&directory=%s&token=%s", cgiScriptName, url_encode(wp.virt_destination), wp.virt_dirname_urlencoded, rt.token);
 }
@@ -452,9 +452,9 @@ off_t du(char *pdir) {
             snprintf(child, sizeof(wp.phys_dirname), "%s/%s", pdir, direntry->d_name);
             if(lstat(child, &fileinfo)==0) {
                 if(S_ISDIR(fileinfo.st_mode)) {
-                    if(direntry->d_name[0]=='.' && direntry->d_name[1]=='\0') 
+                    if(direntry->d_name[0]=='.' && direntry->d_name[1]=='\0')
                         ;
-                    else if(direntry->d_name[0]=='.' && direntry->d_name[1]=='.' && direntry->d_name[2]=='\0') 
+                    else if(direntry->d_name[0]=='.' && direntry->d_name[1]=='.' && direntry->d_name[2]=='\0')
                         ;
                     else
                         tot+=du(child);
@@ -466,7 +466,7 @@ off_t du(char *pdir) {
             direntry=readdir(dir);
         }
         closedir(dir);
-    }   
+    }
 
     return tot;
 }
@@ -483,10 +483,10 @@ void re_dir_ui(char *vdir, int level) {
     char re_phys_dirname[sizeof(wp.phys_dirname)]={0};
     int n;
     int nentr, e;
-    
+
     snprintf(re_phys_dirname, sizeof(re_phys_dirname), "%s/%s", cfg.homedir, vdir);
 
-    if(strlen(re_phys_dirname)<2 || strlen(re_phys_dirname)>(sizeof(wp.phys_dirname)-2)) 
+    if(strlen(re_phys_dirname)<2 || strlen(re_phys_dirname)>(sizeof(wp.phys_dirname)-2))
         error("Invalid directory name.");
 
     if(strlen(re_phys_dirname) < strlen(cfg.homedir)) error("Invalid directory name 4.");
@@ -498,7 +498,7 @@ void re_dir_ui(char *vdir, int level) {
         snprintf(phy_child, sizeof(phy_child), "%s/%s/%s", cfg.homedir, vdir, direntry[e]->d_name);
         if((direntry[e]->d_name[0]!='.') && (lstat(phy_child, &fileinfo)==0) && S_ISDIR(fileinfo.st_mode))  {
 
-            snprintf(child, sizeof(child), "%s/%s", vdir, direntry[e]->d_name); 
+            snprintf(child, sizeof(child), "%s/%s", vdir, direntry[e]->d_name);
 
             fprintf(cgiOut, "<OPTION VALUE=\"%s\">", child);
 
@@ -528,7 +528,7 @@ int re_dir_up(char *vdir) {
     len=strsplit(tmp, &dirs, "/");
     for(n=0; n<len; n++) {
         fprintf(cgiOut, "<OPTION VALUE=\"/");
-        
+
         for(nn=0; nn<n+1; nn++)
             fprintf(cgiOut, "%s/", dirs[nn]);
 
@@ -541,7 +541,7 @@ int re_dir_up(char *vdir) {
 
     }
 
-    
+
     return n+1;
 }
 
@@ -591,14 +591,16 @@ int asscandir(const char *dir, ASDIR **namelist, int (*compar)(const void *, con
     dirh=opendir(dir);
     if(dirh==NULL)
         return -1;
-        
+
     names=(ASDIR*)malloc(sizeof(ASDIR));
     if(names==NULL)
         return -1;
 
     entry=readdir(dirh);
     while(entry!=NULL) {
-        if(entry->d_name[0]!='.') {
+        if( (entry->d_name[0] != '.') ||
+                (cfg.showdotfiles && (entry->d_name[1] != '\0') &&
+                ((entry->d_name[1] != '.') || (entry->d_name[2] != '\0'))) ) {
             snprintf(filename, sizeof(filename), "%s/%s", dir, entry->d_name);
             if(stat(filename, &fileinfo)!=0) {
                 entry=readdir(dirh);
@@ -610,12 +612,12 @@ int asscandir(const char *dir, ASDIR **namelist, int (*compar)(const void *, con
             names[entries].type=fileinfo.st_mode;
             if(S_ISDIR(fileinfo.st_mode) && cfg.recursive_du)
                 names[entries].size=du(filename);
-            else            
+            else
                 names[entries].size=fileinfo.st_size;
             names[entries].atime=fileinfo.st_atime;
             names[entries].mtime=fileinfo.st_mtime;
             names[entries].rtime=fileinfo.st_ctime;
-            
+
             names=(ASDIR*)realloc((ASDIR*)names, sizeof(ASDIR)*(entries+2));
             if(names==NULL)
                 return -1;

@@ -78,6 +78,10 @@ Below is a simple, self-explanatory configuration file example:
     # enable this option if HTTP redirects doesn't work
     #redirect-with-meta=true
 
+    # show files/folders with names starting with dot '.'
+    #  '.' and '..' are excluded always
+    #show-dot-files=true
+
     # favicon / application icon, must be one of the embedded/compiled icon files
     # by default wfmicon.gif
     #favicon=home.gif

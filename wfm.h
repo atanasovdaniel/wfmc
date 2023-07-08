@@ -57,7 +57,7 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <sys/shm.h>    
+#include <sys/shm.h>
 #include <sys/file.h>
 #include <sys/utsname.h>
 
@@ -73,12 +73,12 @@
 extern struct  wfm_paths {
     char virt_dirname[NAME_MAX];
     char *virt_dirname_urlencoded;
-    char virt_filename[NAME_MAX]; 
-    char *virt_filename_urlencoded; 
-    char virt_destination[NAME_MAX]; 
+    char virt_filename[NAME_MAX];
+    char *virt_filename_urlencoded;
+    char virt_destination[NAME_MAX];
     char virt_parent[1024];
     char *virt_parent_urlencoded;
-    char phys_dirname[2048]; 
+    char phys_dirname[2048];
     char phys_filename[4096];
     char phys_destination[4096];
     char final_destination[8192];
@@ -91,6 +91,7 @@ extern struct config_struct {
     int recursive_du;
     int largeset;
     int metaredirect;
+    int showdotfiles;
     char homedir[PATH_MAX];
     char homeurl[1024];
     char tagline[1024];
@@ -137,7 +138,7 @@ char *buprintf(float, int);
 int strip(char *, int, char *);
 int strsplit(char *, char ***, char *);
 void checkfilename(char *);
-void checkdestination(void); 
+void checkdestination(void);
 void mkfile(void);
 void newdir(void);
 void edit_save(void);
